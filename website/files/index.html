@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Demo website with jQuery, Bootstrap and AJAX integration">
+    <title>API Data Explorer - jQuery & Bootstrap Demo</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Import css -->
+     <link rel="stylesheet" href="styles.css">
+   
+</head>
+<body>
+
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-database"></i> API Explorer
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link menu-item" data-category="users" data-endpoint="https://jsonplaceholder.typicode.com/users">
+                            <i class="fas fa-users"></i> Users
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link menu-item" data-category="posts" data-endpoint="https://jsonplaceholder.typicode.com/posts">
+                            <i class="fas fa-clipboard"></i> Posts
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link menu-item" data-category="todos" data-endpoint="https://jsonplaceholder.typicode.com/todos">
+                            <i class="fas fa-tasks"></i> Todos
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link menu-item" data-category="albums" data-endpoint="https://jsonplaceholder.typicode.com/albums">
+                            <i class="fas fa-images"></i> Albums
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link menu-item" data-category="photos" data-endpoint="https://jsonplaceholder.typicode.com/photos">
+                            <i class="fas fa-camera"></i> Photos
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content Container -->
+    <div class="container-fluid mt-4">
+        <div class="row">
+            
+            <!-- Left Sidebar -->
+            <div class="col-lg-2 col-md-3">
+                <div class="sidebar">
+                    <h4><i class="fas fa-list"></i> Quick Links</h4>
+                    <ul class="sidebar-menu">
+                        <li data-action="users"><i class="fas fa-user"></i> View Users</li>
+                        <li data-action="posts"><i class="fas fa-file-alt"></i> Browse Posts</li>
+                        <li data-action="todos"><i class="fas fa-check-square"></i> Check Todos</li>
+                        <li data-action="albums"><i class="fas fa-folder"></i> Albums</li>
+                        <li data-action="photos"><i class="fas fa-image"></i> Gallery</li>
+                    </ul>
+                </div>
+
+                <div class="sidebar">
+                    <h4><i class="fas fa-chart-bar"></i> Statistics</h4>
+                    <div class="stats-card">
+                        <h3 id="total-records">0</h3>
+                        <p>Total Records</p>
+                    </div>
+                    <div class="stats-card">
+                        <h3 id="current-page-stat">0</h3>
+                        <p>Current Page</p>
+                    </div>
+                </div>
+
+                <!-- Left Sidebar Banner Image -->
+                <div class="sidebar-banner">
+                    <img src="https://via.placeholder.com/300x200/667eea/ffffff?text=API+Data" alt="API Banner">
+                </div>
+            </div>
+
+            <!-- Hero Section (Main Content) -->
+            <div class="col-lg-8 col-md-6">
+                <div id="hero-section">
+                    <div class="hero-header">
+                        <h1><i class="fas fa-rocket"></i> Welcome to API Data Explorer</h1>
+                        <p class="lead">Explore and visualize data from various API endpoints with dynamic pagination</p>
+                    </div>
+
+                    <!-- Hero Image -->
+                    <div class="text-center">
+                        <img src="images/hero-image.jpg" 
+                             alt="Hero Image" class="hero-image">
+
+                    </div>
+
+                    <!-- Welcome Message -->
+                    <div id="welcome-message" class="alert alert-info alert-custom">
+                        <h4><i class="fas fa-info-circle"></i> Getting Started</h4>
+                        <p>Click on any menu item above or use the sidebar links to load data from different API endpoints. 
+                           The data will be displayed in a paginated table format below.</p>
+                        <ul>
+                            <li><strong>Users:</strong> Browse user information</li>
+                            <li><strong>Posts:</strong> Read various posts</li>
+                            <li><strong>Todos:</strong> Check task lists</li>
+                            <li><strong>Albums:</strong> View photo albums</li>
+                            <li><strong>Photos:</strong> Explore photo gallery (limited to 50 for performance)</li>
+                        </ul>
+                    </div>
+
+                    <!-- Loading Spinner -->
+                    <div id="loading-spinner" class="loading-spinner" style="display: none;">
+                        <div class="spinner-border" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-3">Loading data...</p>
+                    </div>
+
+                    <!-- Data Table Container -->
+                    <div id="table-container" class="table-container" style="display: none;">
+                        <h3 id="table-title"><i class="fas fa-table"></i> Data Table</h3>
+                        <table id="data-table" class="table table-striped table-hover table-bordered">
+                            <thead id="table-head">
+                                <!-- Dynamic headers will be inserted here -->
+                            </thead>
+                            <tbody id="data-tbody">
+                                <!-- Dynamic rows will be inserted here -->
+                            </tbody>
+                        </table>
+
+                        <!-- Pagination Controls -->
+                        <div id="pagination-controls"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Sidebar -->
+            <div class="col-lg-2 col-md-3">
+                <div class="sidebar">
+                    <h4><i class="fas fa-cog"></i> Settings</h4>
+                    <div class="mb-3">
+                        <label for="items-per-page" class="form-label">Items per page:</label>
+                        <select id="items-per-page" class="form-select">
+                            <option value="5">5</option>
+                            <option value="10" selected>10</option>
+                            <option value="15">15</option>
+                            <option value="20">20</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="sidebar">
+                    <h4><i class="fas fa-info-circle"></i> About API</h4>
+                    <p style="font-size: 0.9rem;">
+                        This demo uses the JSONPlaceholder API, a free fake REST API for testing and prototyping.
+                    </p>
+                    <a href="https://jsonplaceholder.typicode.com/" target="_blank" class="btn btn-sm btn-outline-primary">
+                        <i class="fas fa-external-link-alt"></i> Learn More
+                    </a>
+                </div>
+
+                <!-- Right Sidebar Banner Image -->
+                <div class="sidebar-banner">
+                    <img src="images/sidebar-banner.jpg" alt="Bootstrap Banner">
+                </div>
+
+                <div class="sidebar">
+                    <h4><i class="fas fa-code"></i> Tech Stack</h4>
+                    <ul class="list-unstyled">
+                        <li><i class="fab fa-js"></i> JavaScript ES6+</li>
+                        <li><i class="fab fa-bootstrap"></i> Bootstrap 5</li>
+                        <li><i class="fas fa-code"></i> jQuery 3.7</li>
+                        <li><i class="fas fa-server"></i> REST API</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer Section -->
+    <footer>
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4">
+                    <h5><i class="fas fa-database"></i> API Explorer</h5>
+                    <p>A demonstration website showcasing jQuery, Bootstrap, and AJAX integration with public APIs.</p>
+                </div>
+                <div class="col-md-4">
+                    <h5><i class="fas fa-link"></i> Quick Links</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="#"><i class="fas fa-home"></i> Home</a></li>
+                        <li><a href="#"><i class="fas fa-info-circle"></i> About</a></li>
+                        <li><a href="#"><i class="fas fa-envelope"></i> Contact</a></li>
+                        <li><a href="#"><i class="fas fa-question-circle"></i> FAQ</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-4">
+                    <h5><i class="fas fa-share-alt"></i> Follow Us</h5>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-facebook"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-linkedin"></i></a>
+                        <a href="#"><i class="fab fa-github"></i></a>
+                    </div>
+                    <p class="mt-3">
+                        <i class="fas fa-envelope"></i> info@apiexplorer.com<br>
+                        <i class="fas fa-phone"></i> +1 (555) 123-4567
+                    </p>
+                </div>
+            </div>
+            <hr style="background-color: rgba(255,255,255,0.3); margin: 30px 0;">
+            <div class="text-center">
+                <p>&copy; 2026 API Explorer. All rights reserved. | Developed with <i class="fas fa-heart" style="color: #ff6b6b;"></i> using jQuery & Bootstrap</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    
+    <!-- Bootstrap JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Custom JavaScript -->
+    <script>
+        // Global variables
+        let currentData = [];
+        let currentCategory = '';
+        let pagination = null;
+
+        // Pagination Class using ES6 Class syntax
+        class Pagination {
+            constructor(data, itemsPerPage = 10) {
+                // Type conversion - ensure itemsPerPage is a number
+                this.data = data;
+                this.itemsPerPage = parseInt(itemsPerPage);
+                this.currentPage = 1;
+                this.totalPages = Math.ceil(data.length / this.itemsPerPage);
+            }
+
+            // Arrow function for getting current page data
+            getCurrentPageData = () => {
+                const start = (this.currentPage - 1) * this.itemsPerPage;
+                const end = start + this.itemsPerPage;
+                return this.data.slice(start, end);
+            };
+
+            // Go to specific page
+            goToPage(pageNumber) {
+                // Type conversion and conditional logic
+                const page = parseInt(pageNumber);
+                if (page >= 1 && page <= this.totalPages) {
+                    this.currentPage = page;
+                    return true;
+                }
+                return false;
+            }
+
+            // Go to next page
+            nextPage() {
+                if (this.currentPage < this.totalPages) {
+                    this.currentPage++;
+                    return true;
+                }
+                return false;
+            }
+
+            // Go to previous page
+            prevPage() {
+                if (this.currentPage > 1) {
+                    this.currentPage--;
+                    return true;
+                }
+                return false;
+            }
+
+            // Render pagination controls
+            renderControls() {
+                let html = '<nav><ul class="pagination justify-content-center">';
+                
+                // Previous button with conditional
+                const prevDisabled = this.currentPage === 1 ? 'disabled' : '';
+                html += `<li class="page-item ${prevDisabled}">
+                            <a class="page-link page-nav" href="#" data-page="prev">
+                                <i class="fas fa-chevron-left"></i> Previous
+                            </a>
+                         </li>`;
+                
+                // Page numbers using for loop
+                for (let i = 1; i <= this.totalPages; i++) {
+                    const active = i === this.currentPage ? 'active' : '';
+                    
+                    // Show only relevant page numbers
+                    if (i === 1 || i === this.totalPages || 
+                        (i >= this.currentPage - 2 && i <= this.currentPage + 2)) {
+                        html += `<li class="page-item ${active}">
+                                    <a class="page-link page-nav" href="#" data-page="${i}">${i}</a>
+                                 </li>`;
+                    } else if (i === this.currentPage - 3 || i === this.currentPage + 3) {
+                        html += `<li class="page-item disabled">
+                                    <span class="page-link">...</span>
+                                 </li>`;
+                    }
+                }
+                
+                // Next button with ternary operator
+                const nextDisabled = this.currentPage === this.totalPages ? 'disabled' : '';
+                html += `<li class="page-item ${nextDisabled}">
+                            <a class="page-link page-nav" href="#" data-page="next">
+                                Next <i class="fas fa-chevron-right"></i>
+                            </a>
+                         </li>`;
+                
+                html += '</ul></nav>';
+                
+                $('#pagination-controls').html(html);
+            }
+        }
+
+        // Arrow function for fetching API data
+        const fetchAPIData = (endpoint, category) => {
+            // Show loading, hide other elements
+            $('#loading-spinner').show();
+            $('#table-container').hide();
+            $('#welcome-message').hide();
+
+            // AJAX call using jQuery
+            $.ajax({
+                url: endpoint,
+                method: 'GET',
+                dataType: 'json',
+                success: (response) => {
+                    // Type conversion - ensure response is an array
+                    let dataArray = Array.isArray(response) ? response : [response];
+                    
+                    // Switch case for limiting photos (performance)
+                    switch(category) {
+                        case 'photos':
+                            // Limit photos to first 50 for better performance
+                            dataArray = dataArray.slice(0, 50);
+                            break;
+                        default:
+                            // No limitation for other categories
+                            break;
+                    }
+
+                    currentData = dataArray;
+                    currentCategory = category;
+
+                    // Hide loading
+                    $('#loading-spinner').hide();
+
+                    // Conditional - check if data exists
+                    if (dataArray.length > 0) {
+                        displayData(category);
+                        updateStatistics();
+                    } else {
+                        showNoDataMessage();
+                    }
+                },
+                error: (xhr, status, error) => {
+                    $('#loading-spinner').hide();
+                    showErrorMessage(`Error loading data: ${error}`);
+                    console.error('AJAX Error:', status, error);
+                }
+            });
+        };
+
+        // Arrow function for displaying data
+        const displayData = (category) => {
+            const itemsPerPage = parseInt($('#items-per-page').val());
+            
+            // Create new pagination instance
+            pagination = new Pagination(currentData, itemsPerPage);
+            
+            // Generate table headers using switch case
+            generateTableHeaders(category);
+            
+            // Populate table with current page data
+            populateTable(category, pagination.getCurrentPageData());
+            
+            // Render pagination controls
+            pagination.renderControls();
+            
+            // Show table
+            $('#table-container').show();
+        };
+
+        // Function using switch case to generate headers
+        const generateTableHeaders = (category) => {
+            let headers = '';
+            
+            // Switch case for different categories
+            switch(category) {
+                case 'users':
+                    headers = '<tr><th>ID</th><th>Name</th><th>Username</th><th>Email</th><th>Phone</th><th>Website</th></tr>';
+                    $('#table-title').html('<i class="fas fa-users"></i> Users Data');
+                    break;
+                case 'posts':
+                    headers = '<tr><th>ID</th><th>User ID</th><th>Title</th><th>Body</th></tr>';
+                    $('#table-title').html('<i class="fas fa-clipboard"></i> Posts Data');
+                    break;
+                case 'todos':
+                    headers = '<tr><th>ID</th><th>User ID</th><th>Title</th><th>Status</th></tr>';
+                    $('#table-title').html('<i class="fas fa-tasks"></i> Todos Data');
+                    break;
+                case 'albums':
+                    headers = '<tr><th>ID</th><th>User ID</th><th>Title</th></tr>';
+                    $('#table-title').html('<i class="fas fa-images"></i> Albums Data');
+                    break;
+                case 'photos':
+                    headers = '<tr><th>ID</th><th>Album ID</th><th>Title</th><th>Thumbnail</th></tr>';
+                    $('#table-title').html('<i class="fas fa-camera"></i> Photos Data (First 50)');
+                    break;
+                default:
+                    headers = '<tr><th>ID</th><th>Data</th></tr>';
+                    $('#table-title').html('<i class="fas fa-table"></i> Data Table');
+            }
+            
+            $('#table-head').html(headers);
+        };
+
+        // Function to populate table using loops and conditionals
+        const populateTable = (category, data) => {
+            const tbody = $('#data-tbody');
+            tbody.empty();
+            
+            // Loop through data using forEach
+            data.forEach((item, index) => {
+                let row = '<tr>';
+                
+                // Switch case to handle different data structures
+                switch(category) {
+                    case 'users':
+                        row += `<td>${item.id}</td>`;
+                        row += `<td>${item.name}</td>`;
+                        row += `<td>${item.username}</td>`;
+                        row += `<td>${item.email}</td>`;
+                        row += `<td>${item.phone}</td>`;
+                        row += `<td><a href="http://${item.website}" target="_blank">${item.website}</a></td>`;
+                        break;
+                    
+                    case 'posts':
+                        row += `<td>${item.id}</td>`;
+                        row += `<td>${item.userId}</td>`;
+                        row += `<td>${item.title}</td>`;
+                        // Type conversion and string manipulation
+                        const bodyPreview = String(item.body).substring(0, 100);
+                        row += `<td>${bodyPreview}...</td>`;
+                        break;
+                    
+                    case 'todos':
+                        row += `<td>${item.id}</td>`;
+                        row += `<td>${item.userId}</td>`;
+                        row += `<td>${item.title}</td>`;
+                        // Conditional for status badge
+                        const statusBadge = item.completed 
+                            ? '<span class="badge bg-success">Completed</span>' 
+                            : '<span class="badge bg-warning">Pending</span>';
+                        row += `<td>${statusBadge}</td>`;
+                        break;
+                    
+                    case 'albums':
+                        row += `<td>${item.id}</td>`;
+                        row += `<td>${item.userId}</td>`;
+                        row += `<td>${item.title}</td>`;
+                        break;
+                    
+                    case 'photos':
+                        row += `<td>${item.id}</td>`;
+                        row += `<td>${item.albumId}</td>`;
+                        row += `<td>${item.title.substring(0, 40)}...</td>`;
+                        row += `<td><img src="${item.thumbnailUrl}" alt="Thumbnail" class="img-thumbnail" style="width: 50px;"></td>`;
+                        break;
+                    
+                    default:
+                        row += `<td>${item.id || index + 1}</td>`;
+                        row += `<td>${JSON.stringify(item).substring(0, 100)}...</td>`;
+                }
+                
+                row += '</tr>';
+                tbody.append(row);
+            });
+        };
+
+        // Arrow function for updating statistics
+        const updateStatistics = () => {
+            // Type conversion to string for display
+            $('#total-records').text(String(currentData.length));
+            $('#current-page-stat').text(String(pagination ? pagination.currentPage : 0));
+        };
+
+        // Function to show error message
+        const showErrorMessage = (message) => {
+            const errorHtml = `
+                <div class="alert alert-danger alert-custom">
+                    <h4><i class="fas fa-exclamation-triangle"></i> Error</h4>
+                    <p>${message}</p>
+                </div>
+            `;
+            $('#hero-section').append(errorHtml);
+        };
+
+        // Function to show no data message
+        const showNoDataMessage = () => {
+            $('#table-container').hide();
+            const noDataHtml = `
+                <div class="alert alert-warning alert-custom">
+                    <h4><i class="fas fa-info-circle"></i> No Data</h4>
+                    <p>No data available for this category.</p>
+                </div>
+            `;
+            $('#hero-section').append(noDataHtml);
+        };
+
+        // Document ready function
+        $(document).ready(() => {
+            console.log('Document ready - Initializing application...');
+            
+            // Menu item click handler
+            $('.menu-item').on('click', function(e) {
+                e.preventDefault();
+                
+                const endpoint = $(this).data('endpoint');
+                const category = $(this).data('category');
+                
+                // Type conversion - ensure we have strings
+                const endpointStr = String(endpoint);
+                const categoryStr = String(category);
+                
+                console.log(`Loading category: ${categoryStr}`);
+                
+                // Fetch data from API
+                fetchAPIData(endpointStr, categoryStr);
+            });
+
+            // Sidebar menu click handler
+            $('.sidebar-menu li').on('click', function() {
+                const action = $(this).data('action');
+                
+                // Loop through menu items to find matching category
+                $('.menu-item').each(function() {
+                    if ($(this).data('category') === action) {
+                        $(this).trigger('click');
+                        return false; // Break the loop
+                    }
+                });
+            });
+
+            // Pagination click handler with event delegation
+            $(document).on('click', '.page-nav', function(e) {
+                e.preventDefault();
+                
+                const page = $(this).data('page');
+                
+                // Type conversion and switch case for page navigation
+                switch(String(page)) {
+                    case 'next':
+                        if (pagination.nextPage()) {
+                            populateTable(currentCategory, pagination.getCurrentPageData());
+                            pagination.renderControls();
+                            updateStatistics();
+                        }
+                        break;
+                    
+                    case 'prev':
+                        if (pagination.prevPage()) {
+                            populateTable(currentCategory, pagination.getCurrentPageData());
+                            pagination.renderControls();
+                            updateStatistics();
+                        }
+                        break;
+                    
+                    default:
+                        // Type conversion to number
+                        const pageNum = parseInt(page);
+                        if (pagination.goToPage(pageNum)) {
+                            populateTable(currentCategory, pagination.getCurrentPageData());
+                            pagination.renderControls();
+                            updateStatistics();
+                        }
+                }
+                
+                // Scroll to top of table
+                $('html, body').animate({
+                    scrollTop: $('#table-container').offset().top - 100
+                }, 500);
+            });
+
+            // Items per page change handler
+            $('#items-per-page').on('change', function() {
+                // Conditional check if data exists
+                if (currentData.length > 0) {
+                    displayData(currentCategory);
+                }
+            });
+
+            // Demonstrating for...of loop
+            const demoArray = ['JavaScript', 'jQuery', 'Bootstrap', 'AJAX'];
+            console.log('Tech stack used:');
+            for (const tech of demoArray) {
+                console.log(`- ${tech}`);
+            }
+
+            // Load default data (users) on page load
+            setTimeout(() => {
+                $('.menu-item[data-category="users"]').trigger('click');
+            }, 500);
+        });
+    </script>
+</body>
+</html>
